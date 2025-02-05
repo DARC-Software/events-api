@@ -14,4 +14,9 @@ public class VenueController {
     public void createVenue(@RequestBody Venue venue) {
 
     }
+
+    @PutMapping("/{venueId}")
+    public void updateVenue(@RequestBody Venue venue, @PathVariable Long id) {
+
+    }
 }
