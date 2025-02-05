@@ -19,4 +19,9 @@ public class VenueController {
     public void updateVenue(@RequestBody Venue venue, @PathVariable Long id) {
 
     }
+
+    @DeleteMapping("/{venueId}")
+    public void deleteVenue(@PathVariable Long id) {
+
+    }
 }
