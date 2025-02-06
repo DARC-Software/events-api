@@ -16,7 +16,12 @@ public class VenueController {
     }
 
     @PutMapping("/{venueId}")
-    public void updateVenue(@RequestBody Venue venue, @PathVariable Long id) {
+    public void updateVenue(@RequestBody Venue venue, @PathVariable Long venueId) {
+
+    }
+
+    @DeleteMapping("/{venueId}")
+    public void deleteVenue(@PathVariable Long venueId) {
 
     }
 }
