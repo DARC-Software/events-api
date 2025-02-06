@@ -17,7 +17,7 @@ public class VenueController {
     }
 
     @GetMapping("/{id}")
-    public Venue getVenueById(@PathVariable long id) {
+    public Venue getVenueById(@PathVariable Long id) {
         return this.venueService.getVenueById(id);
     }
 
@@ -27,12 +27,13 @@ public class VenueController {
     }
 
     @PutMapping("/{id}")
-    public void updateVenue(@RequestBody Venue venue, @PathVariable long id) {
-        this.venueService.updateVenue(venue, id);
+    public void updateVenue(@PathVariable Long id, @RequestBody Venue venue) {
+        venue.setId(id);
+        this.venueService.updateVenue(venue);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteVenue(@PathVariable long id) {
+    public void deleteVenue(@PathVariable Long id) {
         this.venueService.deleteVenue(id);
     }
 }
