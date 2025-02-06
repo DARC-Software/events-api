@@ -13,10 +13,10 @@ public class VenueService {
         return this.venues;
     }
 
-    public Venue getVenueById(Long venueId) {
+    public Venue getVenueById(long venueId) {
         return this.venues
                 .stream()
-                .filter(venue -> venue.id().equals(venueId))
+                .filter(venue -> venue.id() == venueId)
                 .findAny()
                 .orElse(null);
     }
@@ -25,16 +25,16 @@ public class VenueService {
         this.venues.add(venue);
     }
 
-    public void updateVenue(Venue venue, Long venueId) {
+    public void updateVenue(Venue venue, long venueId) {
         for(int i = 0; i < this.venues.size(); i++) {
-            if(this.venues.get(i).id().equals(venueId)) {
+            if(this.venues.get(i).id() == venueId) {
                 this.venues.set(i, venue);
                 // break; <- Will not update every value with the associated id
             }
         }
     }
 
-    public void deleteVenue(Long id) {
-        this.venues.removeIf(venue -> venue.id().equals(id));
+    public void deleteVenue(long id) {
+        this.venues.removeIf(venue -> venue.id() == id);
     }
 }
