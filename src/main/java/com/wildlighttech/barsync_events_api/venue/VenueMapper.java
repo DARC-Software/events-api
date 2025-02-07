@@ -6,19 +6,19 @@ import java.util.List;
 
 @Mapper
 public interface VenueMapper {
-    @Select("SELECT * FROM venue WHERE id = #{id}")
+    @Select("SELECT * FROM venues WHERE id = #{id}")
     Venue getVenueById(Long id);
 
-    @Select("SELECT * FROM venue")
+    @Select("SELECT * FROM venues")
     List<Venue> getVenues();
 
-    @Insert("INSERT INTO venue(name, address, phone_number) VALUES(#{name}, #{address}, #{phoneNumber})")
+    @Insert("INSERT INTO venues(name, address, phoneNumber) VALUES(#{name}, #{address}, #{phoneNumber})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     void createVenue(Venue venue);
 
-    @Update("UPDATE venue SET name=#{name}, address=#{address}, phone_number=#{phoneNumber} WHERE id=#{id}")
+    @Update("UPDATE venues SET name=#{name}, address=#{address}, phoneNumber=#{phoneNumber} WHERE id=#{id}")
     void updateVenue(Venue venue);
 
-    @Delete("DELETE FROM venue WHERE id = #{id}")
+    @Delete("DELETE FROM venues WHERE id = #{id}")
     void deleteVenue(Long id);
 }
