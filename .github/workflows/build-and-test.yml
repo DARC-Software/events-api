@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -20,11 +19,14 @@ jobs:
       with:
         java-version: '21'
         distribution: 'zulu'
-
+    - name: Start Docker Compose
+      run: docker compose -f compose.yml up -d
+      
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v4
-
+    - name: Setup MySQL
+    
     - name: Build with Gradle Wrapper
-      run: ./gradlew clean build
+      run: ./gradlew clean test
