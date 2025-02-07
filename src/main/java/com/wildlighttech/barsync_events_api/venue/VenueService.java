@@ -1,40 +1,32 @@
 package com.wildlighttech.barsync_events_api.venue;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 public class VenueService {
-    private final List<Venue> venues = new ArrayList<>();
+    private final VenueMapper venueMapper;
 
     public List<Venue> getVenues() {
-        return this.venues;
+        return this.venueMapper.getVenues();
     }
 
-    public Venue getVenueById(Long venueId) {
-        return this.venues
-                .stream()
-                .filter(venue -> venue.id().equals(venueId))
-                .findAny()
-                .orElse(null);
+    public Venue getVenueById(Long id) {
+        return this.venueMapper.getVenueById(id);
     }
 
     public void createVenue(Venue venue) {
-        this.venues.add(venue);
+        this.venueMapper.createVenue(venue);
     }
 
-    public void updateVenue(Venue venue, Long venueId) {
-        for(int i = 0; i < this.venues.size(); i++) {
-            if(this.venues.get(i).id().equals(venueId)) {
-                this.venues.set(i, venue);
-                // break; <- Will not update every value with the associated id
-            }
-        }
+    public void updateVenue(Venue venue) {
+        this.venueMapper.updateVenue(venue);
     }
 
     public void deleteVenue(Long id) {
-        this.venues.removeIf(venue -> venue.id().equals(id));
+        this.venueMapper.deleteVenue(id);
     }
 }

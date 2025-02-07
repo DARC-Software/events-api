@@ -1,4 +1,13 @@
 package com.wildlighttech.barsync_events_api.venue;
 
-public record Venue(Long id, String name, String address, String phoneNumber) {
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
+public class Venue {
+    private Long id;
+    private String name;
+    private String address;
+    private String phoneNumber;
 }
