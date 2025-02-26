@@ -1,9 +1,0 @@
-services:
-  mysql:
-    container_name: 'barsync-db'
-    image: 'mysql:latest'
-    environment:
-      - 'MYSQL_DATABASE=barsync-db'
-      - 'MYSQL_ROOT_PASSWORD=verysecret'
-    ports:
-      - '3306:3306'
