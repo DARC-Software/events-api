@@ -1,4 +1,4 @@
-package com.wildlighttech.events_api.venue;
+package com.darcsoftware.events_api.venue;
 
 import lombok.Getter;
 import lombok.Setter;

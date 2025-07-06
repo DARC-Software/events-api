@@ -1,6 +1,6 @@
-package com.wildlighttech.events_api.venue;
+package com.darcsoftware.events_api.venue;
 
-import com.wildlighttech.barsync_events_api.venue.Venue;
+import com.darcsoftware.barsync_events_api.venue.Venue;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
