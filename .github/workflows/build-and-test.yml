@@ -1,4 +1,4 @@
-name: barsync cicd flow
+name: aihg cicd flow
 
 on:
   push:

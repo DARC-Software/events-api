@@ -1,4 +1,4 @@
-package com.wildlighttech.barsync_events_api.event;
+package com.wildlighttech.events_api.event;
 
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;

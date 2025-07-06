@@ -1,4 +1,4 @@
-package com.wildlighttech.barsync_events_api.venue;
+package com.wildlighttech.events_api.venue;
 
 import org.apache.ibatis.annotations.*;
 
