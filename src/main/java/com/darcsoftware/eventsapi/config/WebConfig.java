@@ -17,6 +17,8 @@ public class WebConfig implements WebMvcConfigurer {
                         "ionic://localhost",
                         "http://192.168.*.*"
                 )
-                .allowedMethods("*");
+                .allowedMethods("*")
+                .allowedHeaders("*")
+                .allowCredentials(true);
     }
 }
