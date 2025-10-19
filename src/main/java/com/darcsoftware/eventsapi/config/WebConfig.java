@@ -10,7 +10,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:8100","http://127.0.0.1:8100","capacitor://localhost")
+                .allowedOrigins(
+                        "http://localhost:*",
+                        "http://10.0.2.2:*",
+                        "capacitor://localhost",
+                        "ionic://localhost",
+                        "http://192.168.*.*"
+                )
                 .allowedMethods("*");
     }
 }
