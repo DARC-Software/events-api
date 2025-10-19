@@ -11,7 +11,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins(
-                        "http://localhost:*",
+                        "http://localhost:8100",
                         "http://10.0.2.2:*",
                         "capacitor://localhost",
                         "ionic://localhost",
