@@ -1,4 +1,4 @@
-package com.darcsoftware.eventsapi.events.dto;
+package com.darcsoftware.eventsapi.event.dto;
 
 import java.util.List;
 

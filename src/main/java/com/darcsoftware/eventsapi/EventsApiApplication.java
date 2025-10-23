@@ -5,7 +5,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-@MapperScan("com.darcsoftware.eventsapi.events")
+@MapperScan(basePackages = {
+		"com.darcsoftware.eventsapi.event",
+		"com.darcsoftware.eventsapi.party",
+		"com.darcsoftware.eventsapi.room",
+		"com.darcsoftware.eventsapi.venue",
+		"com.darcsoftware.eventsapi.profiles"
+})
 public class EventsApiApplication {
 
 	public static void main(String[] args) {

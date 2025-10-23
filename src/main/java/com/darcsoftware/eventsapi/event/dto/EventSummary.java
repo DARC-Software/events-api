@@ -1,4 +1,4 @@
-package com.darcsoftware.eventsapi.events.dto;
+package com.darcsoftware.eventsapi.event.dto;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -16,5 +16,6 @@ public record EventSummary(
         LocalDateTime startTimeLocal,
         LocalDateTime endTimeLocal,
         Instant startTimeUtc,
-        Instant endTimeUtc
+        Instant endTimeUtc,
+        String backgroundUrl
 ) {}
