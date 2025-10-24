@@ -1,6 +1,6 @@
 package com.darcsoftware.eventsapi.room.dto;
 
 public record RoomCreateRequest(
-        Long venueId,
+        long venueId,
         String name
 ) {}

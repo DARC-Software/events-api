@@ -1,10 +1,5 @@
 package com.darcsoftware.eventsapi.party.dto;
 
-import java.util.List;
+import com.darcsoftware.eventsapi.common.PageResponse;
 
-public record PartyListResponse(
-        List<PartyLookupItem> items,
-        Integer limit,
-        Integer offset,
-        Long total
-) {}
+public record PartyListResponse(PageResponse<PartyLookupItem> page) {}

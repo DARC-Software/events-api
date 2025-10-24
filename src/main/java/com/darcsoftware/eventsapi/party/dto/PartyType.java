@@ -1,5 +1,3 @@
 package com.darcsoftware.eventsapi.party.dto;
 
-public enum PartyType {
-    PERSON, GROUP
-}
+public enum PartyType { PERSON, GROUP }

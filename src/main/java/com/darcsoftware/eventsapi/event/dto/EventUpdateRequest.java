@@ -1,6 +1,6 @@
 package com.darcsoftware.eventsapi.event.dto;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 /**
@@ -8,13 +8,13 @@ import java.util.List;
  * Service recalculates UTC + offset_minutes from local+timezone when any of those change.
  */
 public record EventUpdateRequest(
-        Long venueId,                // optional
-        Long roomId,                 // optional
-        String title,                // optional
-        String description,          // optional
-        String backgroundUrl,        // optional
-        LocalDateTime startTimeLocal,// optional
-        LocalDateTime endTimeLocal,  // optional
-        String timezone,             // optional
-        List<EventHostLinkCreate> hostsReplace // optional: simple “replace / upsert” semantics
+        Long venueId,
+        Long roomId,
+        String title,
+        String description,
+        String backgroundUrl,
+        OffsetDateTime startTimeLocal,
+        OffsetDateTime endTimeLocal,
+        String timezone,
+        List<EventHostLinkCreate> hostsReplace
 ) {}

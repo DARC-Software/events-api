@@ -1,5 +1,3 @@
 package com.darcsoftware.eventsapi.room.dto;
 
-public record RoomUpdateRequest(
-        String name
-) {}
+public record RoomUpdateRequest(String name) {}

@@ -1,131 +1,119 @@
+// party/PartyService.java
 package com.darcsoftware.eventsapi.party;
 
+import com.darcsoftware.eventsapi.common.PageResponse;
+import com.darcsoftware.eventsapi.common.SlugService;
 import com.darcsoftware.eventsapi.party.dto.*;
-import com.darcsoftware.eventsapi.profiles.dto.PartyWithPersonProfileResponse;
-import com.darcsoftware.eventsapi.profiles.dto.PersonProfileResponse;
+import com.darcsoftware.eventsapi.profiles.group.dto.GroupProfileListRow;
+import com.darcsoftware.eventsapi.profiles.group.dto.GroupProfileResponse;
+import com.darcsoftware.eventsapi.profiles.group.dto.GroupProfileUpsertRequest;
+import com.darcsoftware.eventsapi.profiles.person.dto.PersonProfileListRow;
+import com.darcsoftware.eventsapi.profiles.person.dto.PersonProfileResponse;
+import com.darcsoftware.eventsapi.profiles.person.dto.PersonProfileUpsertRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PartyService {
+    private final PartyMapper party;
+    private final SlugService slugService;
 
-    private final PartyMapper partyMapper;
-
-    public PartyService(PartyMapper partyMapper) {
-        this.partyMapper = partyMapper;
+    public PartyService(PartyMapper party, SlugService slugService) {
+        this.party = party;
+        this.slugService = slugService;
     }
 
-    // ===== existing create person/group methods & list(...) stay as we wrote before =====
-
-    @Transactional
-    public PartyWithPersonProfileResponse createPersonWithParty(CreatePersonWithPartyRequest req) {
-        if (req.slug() != null && !req.slug().isBlank() && partyMapper.countBySlug(req.slug()) > 0) {
-            throw new IllegalArgumentException("Slug already exists: " + req.slug());
-        }
-        partyMapper._insertPartyRaw(PartyType.PERSON, req.displayName(), emptyToNull(req.slug()));
-        Long partyId = partyMapper.lastInsertId();
-
-        partyMapper.insertPersonProfile(
-                partyId, nullIfBlank(req.firstName()), nullIfBlank(req.lastName()), nullIfBlank(req.stageName()),
-                nullIfBlank(req.bio()), nullIfBlank(req.avatarUrl()), nullIfBlank(req.instagram()),
-                nullIfBlank(req.tiktok()), nullIfBlank(req.facebook())
+    // --- People list for Profiles UI ---
+    public PageResponse<PersonProfileListRow> listPeople(String q, int limit, int offset) {
+        return new PageResponse<>(
+                party.listPeople(q, limit, offset),
+                limit, offset,
+                party.countPeople(q)
         );
-
-        var party = new PartyResponse(partyId, PartyType.PERSON, req.displayName(), emptyToNull(req.slug()));
-        var profile = new PersonProfileResponse(partyId,
-                nullIfBlank(req.firstName()), nullIfBlank(req.lastName()), nullIfBlank(req.stageName()),
-                nullIfBlank(req.bio()), nullIfBlank(req.avatarUrl()), nullIfBlank(req.instagram()),
-                nullIfBlank(req.tiktok()), nullIfBlank(req.facebook()));
-        return new PartyWithPersonProfileResponse(party, profile);
     }
 
-    @Transactional
-    public PartyWithGroupProfileResponse createGroupWithParty(CreateGroupWithPartyRequest req) {
-        if (req.slug() != null && !req.slug().isBlank() && partyMapper.countBySlug(req.slug()) > 0) {
-            throw new IllegalArgumentException("Slug already exists: " + req.slug());
-        }
-        partyMapper._insertPartyRaw(PartyType.GROUP, req.displayName(), emptyToNull(req.slug()));
-        Long partyId = partyMapper.lastInsertId();
-
-        partyMapper.insertGroupProfile(
-                partyId, req.groupName(), nullIfBlank(req.bio()), nullIfBlank(req.avatarUrl()),
-                nullIfBlank(req.instagram()), nullIfBlank(req.tiktok()), nullIfBlank(req.facebook())
+    // --- Groups list for Profiles UI ---
+    public PageResponse<GroupProfileListRow> listGroups(String q, int limit, int offset) {
+        return new PageResponse<>(
+                party.listGroups(q, limit, offset),
+                limit, offset,
+                party.countGroups(q)
         );
-
-        var party = new PartyResponse(partyId, PartyType.GROUP, req.displayName(), emptyToNull(req.slug()));
-        var profile = new GroupProfileResponse(partyId, req.groupName(), nullIfBlank(req.bio()),
-                nullIfBlank(req.avatarUrl()), nullIfBlank(req.instagram()), nullIfBlank(req.tiktok()),
-                nullIfBlank(req.facebook()));
-        return new PartyWithGroupProfileResponse(party, profile);
     }
 
-    public PartyListResponse list(PartyListQuery q) {
-        int limit = q.page() != null && q.page().limit() != null ? q.page().limit() : 50;
-        int offset = q.page() != null && q.page().offset() != null ? q.page().offset() : 0;
-        var items = partyMapper.listParties(q.type(), q.q(), limit, offset);
-        var total = partyMapper.countParties(q.type(), q.q());
-        return new PartyListResponse(items, limit, offset, total);
-    }
-
-    // ===== NEW: group members =====
+    // --- Create Person (Party + Person Profile) ---
     @Transactional
-    public GroupMemberResponse addMember(Long groupId, GroupMemberCreateRequest req) {
-        ensurePartyType(groupId, PartyType.GROUP, "groupId");
-        ensurePartyType(req.memberPartyId(), PartyType.PERSON, "memberPartyId");
+    public PartyWithPersonProfileResponse createPerson(CreatePersonWithPartyRequest req) {
+        final String slug = slugService.slugOfParty(req.displayName());
+        ensurePartySlugUnique(slug, null);
 
-        if (partyMapper.countGroupMember(groupId, req.memberPartyId()) > 0) {
-            throw new IllegalArgumentException("Member already in group.");
+        party.insertParty("PERSON", req.displayName(), slug);
+        long partyId = party.lastId();
+
+        var up = new PersonProfileUpsertRequest(
+                req.displayName(), req.firstName(), req.lastName(), req.stageName(), req.bio(),
+                req.avatarUrl(), req.instagram(), req.tiktok(), req.facebook()
+        );
+        if (party.hasPersonProfile(partyId) == 0) party.insertPersonProfile(partyId, up);
+        else party.updatePersonProfile(partyId, up);
+
+        var partyResp = party.get(partyId).orElseThrow();
+        var profile   = new PersonProfileResponse(partyId, req.firstName(), req.lastName(), req.stageName(), req.bio(),
+                req.avatarUrl(), req.instagram(), req.tiktok(), req.facebook());
+
+        return new PartyWithPersonProfileResponse(partyResp, profile);
+    }
+
+    // --- Create Group (Party + Group Profile) ---
+    @Transactional
+    public PartyWithGroupProfileResponse createGroup(CreateGroupWithPartyRequest req) {
+        final String slug = slugService.slugOfParty(req.displayName());
+        ensurePartySlugUnique(slug, null);
+
+        party.insertParty("GROUP", req.displayName(), slug);
+        long partyId = party.lastId();
+
+        var up = new GroupProfileUpsertRequest(
+                req.displayName(), req.groupName(), req.bio(), req.avatarUrl(), req.instagram(), req.tiktok(), req.facebook()
+        );
+        if (party.hasGroupProfile(partyId) == 0) party.insertGroupProfile(partyId, up);
+        else party.updateGroupProfile(partyId, up);
+
+        var partyResp = party.get(partyId).orElseThrow();
+        var profile   = new GroupProfileResponse(partyId, req.groupName(), req.bio(), req.avatarUrl(),
+                req.instagram(), req.tiktok(), req.facebook());
+
+        return new PartyWithGroupProfileResponse(partyResp, profile);
+    }
+
+    // --- Group members ---
+    public PageResponse<GroupMemberResponse> listMembers(long groupId, int limit, int offset) {
+        return new PageResponse<>(party.listMembers(groupId, limit, offset), limit, offset, party.countMembers(groupId));
+    }
+
+    @Transactional
+    public GroupMemberResponse addMember(long groupId, GroupMemberCreateRequest req) {
+        party.addMember(groupId, req.memberPartyId(), req.role(), req.sortOrder());
+        // return current row
+        return party.listMembers(groupId, 1, 0).stream().findFirst()
+                .orElse(new GroupMemberResponse(groupId, req.memberPartyId(), req.role(), req.sortOrder(), null, null));
+    }
+
+    @Transactional
+    public GroupMemberResponse updateMember(long groupId, long memberPartyId, GroupMemberUpdateRequest req) {
+        party.updateMember(groupId, memberPartyId, req.role(), req.sortOrder());
+        return party.listMembers(groupId, 1, 0).stream().findFirst()
+                .orElse(new GroupMemberResponse(groupId, memberPartyId, req.role(), req.sortOrder(), null, null));
+    }
+
+    @Transactional
+    public void deleteMember(long groupId, long memberPartyId) {
+        party.deleteMember(groupId, memberPartyId);
+    }
+
+    private void ensurePartySlugUnique(String slug, Long excludeId) {
+        if (party.countPartySlug(slug, excludeId) > 0) {
+            throw new IllegalArgumentException("Slug already exists for another party");
         }
-
-        partyMapper.insertGroupMember(groupId, req.memberPartyId(), nullIfBlank(req.role()), req.sortOrder());
-        // fetch denormalized bits
-        var member = partyMapper.findPartyById(req.memberPartyId());
-        return new GroupMemberResponse(groupId, req.memberPartyId(),
-                nullIfBlank(req.role()), req.sortOrder() == null ? 0 : req.sortOrder(),
-                member != null ? member.displayName() : null,
-                member != null ? member.slug() : null);
     }
-
-    @Transactional
-    public GroupMemberResponse updateMember(Long groupId, Long memberPartyId, GroupMemberUpdateRequest req) {
-        ensurePartyType(groupId, PartyType.GROUP, "groupId");
-        ensurePartyType(memberPartyId, PartyType.PERSON, "memberPartyId");
-
-        partyMapper.updateGroupMember(groupId, memberPartyId, nullIfBlank(req.role()), req.sortOrder());
-
-        var member = partyMapper.findPartyById(memberPartyId);
-        // We don’t re-read role/sort from DB here; if you prefer, SELECT back the row.
-        return new GroupMemberResponse(groupId, memberPartyId,
-                nullIfBlank(req.role()), req.sortOrder(),
-                member != null ? member.displayName() : null,
-                member != null ? member.slug() : null);
-    }
-
-    @Transactional
-    public void removeMember(Long groupId, Long memberPartyId) {
-        ensurePartyType(groupId, PartyType.GROUP, "groupId");
-        ensurePartyType(memberPartyId, PartyType.PERSON, "memberPartyId");
-        partyMapper.deleteGroupMember(groupId, memberPartyId);
-    }
-
-    public GroupMemberListResponse listMembers(Long groupId, Integer limit, Integer offset) {
-        ensurePartyType(groupId, PartyType.GROUP, "groupId");
-        int l = limit == null ? 50 : limit;
-        int o = offset == null ? 0 : offset;
-        var items = partyMapper.listGroupMembers(groupId, l, o);
-        var total = partyMapper.countGroupMembers(groupId);
-        return new GroupMemberListResponse(items, l, o, total);
-    }
-
-    // ===== helpers =====
-    private void ensurePartyType(Long partyId, PartyType expected, String paramName) {
-        var type = partyMapper.findPartyType(partyId);
-        if (type == null) throw new IllegalArgumentException("Unknown partyId for " + paramName + ": " + partyId);
-        if (type != expected) {
-            throw new IllegalArgumentException("partyId " + partyId + " must be type " + expected + " for " + paramName);
-        }
-    }
-
-    private static String emptyToNull(String s) { return (s == null || s.isBlank()) ? null : s; }
-    private static String nullIfBlank(String s) { return (s == null || s.isBlank()) ? null : s; }
 }

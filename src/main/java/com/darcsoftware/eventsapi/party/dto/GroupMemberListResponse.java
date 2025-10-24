@@ -1,10 +1,6 @@
+// party/dto/GroupMemberListResponse.java
 package com.darcsoftware.eventsapi.party.dto;
 
-import java.util.List;
+import com.darcsoftware.eventsapi.common.PageResponse;
 
-public record GroupMemberListResponse(
-        List<GroupMemberResponse> items,
-        Integer limit,
-        Integer offset,
-        Long total
-) {}
+public record GroupMemberListResponse(PageResponse<GroupMemberResponse> page) {}

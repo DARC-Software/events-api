@@ -1,10 +1,7 @@
-package com.darcsoftware.eventsapi.profiles;
+package com.darcsoftware.eventsapi.profiles.person.dto;
 
-public record PersonProfileJoinRow(
-        long   partyId,
-        String partyDisplayName,
-        String partySlug,
-        String partyType,
+public record PersonProfileResponse(
+        long partyId,
         String firstName,
         String lastName,
         String stageName,

@@ -1,3 +1,4 @@
+// party/dto/GroupMemberUpdateRequest.java
 package com.darcsoftware.eventsapi.party.dto;
 
 public record GroupMemberUpdateRequest(

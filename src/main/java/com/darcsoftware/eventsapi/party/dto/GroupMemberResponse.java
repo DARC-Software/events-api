@@ -1,11 +1,11 @@
+// party/dto/GroupMemberResponse.java
 package com.darcsoftware.eventsapi.party.dto;
 
 public record GroupMemberResponse(
-        Long groupId,
-        Long memberPartyId,
+        long groupId,
+        long memberPartyId,
         String role,
-        Integer sortOrder,
-        // denormalized for UI:
+        int sortOrder,
         String memberDisplayName,
         String memberSlug
 ) {}
