@@ -1,7 +1,8 @@
+// party/dto/GroupMemberCreateRequest.java
 package com.darcsoftware.eventsapi.party.dto;
 
 public record GroupMemberCreateRequest(
-        Long memberPartyId,                // must be a PERSON party.id
+        long memberPartyId,
         String role,
-        Integer sortOrder                  // optional; default 0
+        Integer sortOrder
 ) {}

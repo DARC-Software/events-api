@@ -1,9 +1,10 @@
+// venue/dto/VenueResponse.java
 package com.darcsoftware.eventsapi.venue.dto;
 
 import java.time.Instant;
 
 public record VenueResponse(
-        Long id,
+        long id,
         String name,
         String slug,
         String addressLine1,

@@ -1,7 +1,9 @@
-package com.darcsoftware.eventsapi.profiles.dto;
+package com.darcsoftware.eventsapi.profiles.person.dto;
 
-public record PersonProfileResponse(
-        Long partyId,
+public record PersonProfileGetResponse(
+        long partyId,
+        String displayName,
+        String slug,
         String firstName,
         String lastName,
         String stageName,

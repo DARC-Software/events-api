@@ -1,15 +1,11 @@
+// venue/dto/VenueCreateRequest.java
 package com.darcsoftware.eventsapi.venue.dto;
 
-import lombok.Data;
-
-@Data
-public class VenueCreateRequest {
-        String id;
-        String name;
-        String slug;          // optional; if null we slugify name
-        String addressLine1;
-        String addressLine2;  // optional
-        String city;
-        String state;         // 2-letter
-        String zipCode;
-}
+public record VenueCreateRequest(
+        String name,
+        String addressLine1,
+        String addressLine2,
+        String city,
+        String state,
+        String zipCode
+) {}

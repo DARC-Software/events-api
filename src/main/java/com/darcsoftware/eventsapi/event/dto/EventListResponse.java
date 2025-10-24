@@ -1,10 +1,5 @@
 package com.darcsoftware.eventsapi.event.dto;
 
-import java.util.List;
+import com.darcsoftware.eventsapi.common.PageResponse;
 
-public record EventListResponse(
-        List<EventSummary> items,
-        Integer limit,
-        Integer offset,
-        Long total
-) {}
+public record EventListResponse(PageResponse<EventSummary> page) {}

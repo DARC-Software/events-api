@@ -1,145 +1,99 @@
+// event/EventService.java
 package com.darcsoftware.eventsapi.event;
 
-import com.darcsoftware.eventsapi.event.dto.EventCreateRequest;
-import com.darcsoftware.eventsapi.event.dto.EventListResponse;
-import com.darcsoftware.eventsapi.event.dto.EventSummary;
-import com.darcsoftware.eventsapi.event.dto.EventUpdateRequest;
-import com.darcsoftware.eventsapi.room.RoomMapper;
-import com.darcsoftware.eventsapi.venue.VenueMapper;
+import com.darcsoftware.eventsapi.common.PageResponse;
+import com.darcsoftware.eventsapi.event.dto.*;
+import com.darcsoftware.eventsapi.room.RoomService;
+import com.darcsoftware.eventsapi.venue.VenueService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.util.List;
 
 @Service
 public class EventService {
     private final EventMapper events;
-    private final VenueMapper venues;
-    private final RoomMapper rooms;
+    private final VenueService venues;
+    private final RoomService rooms;
 
-    public EventService(EventMapper events, VenueMapper venues, RoomMapper rooms) {
+    public EventService(EventMapper events, VenueService venues, RoomService rooms) {
         this.events = events;
         this.venues = venues;
         this.rooms = rooms;
     }
 
-    public EventSummary get(Long id) {
-        return events.findSummaryById(id).orElseThrow(() -> new IllegalArgumentException("Event not found: " + id));
-    }
-
-    public EventListResponse listByHost(Long hostId, int limit, int offset) {
-        var items = events.listByHost(hostId, limit, offset);
-        var total = events.countByHost(hostId);
-        return new EventListResponse(items, limit, offset, total);
-    }
-
-    public EventListResponse listByVenue(Long venueId, int limit, int offset) {
-        var items = events.listByVenue(venueId, limit, offset);
-        var total = events.countByVenue(venueId);
-        return new EventListResponse(items, limit, offset, total);
+    public EventSummary get(long id) {
+        return events.get(id).orElseThrow(() -> new IllegalArgumentException("Event not found"));
     }
 
     @Transactional
     public EventSummary create(EventCreateRequest req) {
-        // Validate venue
-        venues.findById(req.venueId()).orElseThrow(() -> new IllegalArgumentException("Venue not found: " + req.venueId()));
-        // Validate room (if provided)
-        if (req.roomId() != null) {
-            var room = rooms.findById(req.roomId()).orElseThrow(() -> new IllegalArgumentException("Room not found: " + req.roomId()));
-            if (!room.venueId().equals(req.venueId()))
-                throw new IllegalArgumentException("Room does not belong to venue");
-        }
+        // Validate venue/room existence
+        venues.get(req.venueId());
+        if (req.roomId() != null) rooms.get(req.roomId());
 
-        // Compute UTC + offset local+timezone
-        var tz = ZoneId.of(req.timezone());
-        var startZ = ZonedDateTime.of(req.startTimeLocal(), tz);
-        var endZ = ZonedDateTime.of(req.endTimeLocal(), tz);
+        // compute offset and UTC from timezone and local times
+        ZoneId zone = ZoneId.of(req.timezone());
+        ZonedDateTime startZ = req.startTimeLocal().atZoneSameInstant(zone); // assuming payload is OffsetDateTime; adjust if LocalDateTime
+        ZonedDateTime endZ   = req.endTimeLocal().atZoneSameInstant(zone);
         int offsetMinutes = startZ.getOffset().getTotalSeconds() / 60;
-        Instant startUtc = startZ.toInstant();
-        Instant endUtc = endZ.toInstant();
 
-        events.insert(
-                req.parentEventId(),
-                req.venueId(),
-                req.roomId(),
-                req.title(),
-                req.description(),
-                req.backgroundUrl(),
-                req.startTimeLocal(),
-                req.endTimeLocal(),
-                req.timezone(),
-                offsetMinutes,
-                startUtc,
-                endUtc
-        );
-        Long eventId = events.lastInsertId();
+        OffsetDateTime startUtc = startZ.withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime();
+        OffsetDateTime endUtc   = endZ.withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime();
 
-        // Link hosts if provided
-        if (req.hosts() != null) {
-            int sort = 0;
-            for (var h : req.hosts()) {
-                if (h == null || h.partyId() == null) continue;
-                events.upsertHost(eventId, h.partyId(), h.role(), h.sortOrder() != null ? h.sortOrder() : sort++);
-            }
-        }
-        return get(eventId);
+        events.insert(req.parentEventId(), req.venueId(), req.roomId(), req.title(), req.description(), req.backgroundUrl(),
+                req.startTimeLocal(), req.endTimeLocal(), req.timezone(), offsetMinutes, startUtc, endUtc);
+
+        // Simplest: fetch latest by venue (or you could LAST_INSERT_ID via extra select)
+        List<EventSummary> recent = events.listByVenue(req.venueId(), 1, 0);
+        return recent.isEmpty() ? throwCreate() : recent.get(0);
     }
 
-    public EventSummary update(Long id, EventUpdateRequest req) {
-        // Optional venue/room changes: validate if provided
-        Long venueId = req.venueId();
-        Long roomId = req.roomId();
+    @Transactional
+    public EventSummary update(long id, EventUpdateRequest req) {
+        // optional: validate venue/room if provided
+        if (req.venueId() != null) venues.get(req.venueId());
+        if (req.roomId() != null) rooms.get(req.roomId());
 
-        if (venueId != null) {
-            venues.findById(venueId).orElseThrow(() -> new IllegalArgumentException("Venue not found: " + venueId));
+        Integer offsetMinutes = null;
+        OffsetDateTime startUtc = null;
+        OffsetDateTime endUtc = null;
+
+        if (req.startTimeLocal() != null && req.timezone() != null) {
+            ZoneId zone = ZoneId.of(req.timezone());
+            ZonedDateTime startZ = req.startTimeLocal().atZoneSameInstant(zone);
+            offsetMinutes = startZ.getOffset().getTotalSeconds() / 60;
+            startUtc = startZ.withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime();
         }
-        if (roomId != null) {
-            var room = rooms.findById(roomId).orElseThrow(() -> new IllegalArgumentException("Room not found: " + roomId));
-            if (venueId != null && !room.venueId().equals(venueId))
-                throw new IllegalArgumentException("Room does not belong to the venue");
+        if (req.endTimeLocal() != null && req.timezone() != null) {
+            ZoneId zone = ZoneId.of(req.timezone());
+            ZonedDateTime endZ = req.endTimeLocal().atZoneSameInstant(zone);
+            endUtc = endZ.withZoneSameInstant(ZoneOffset.UTC).toOffsetDateTime();
         }
 
-        // Pull current to fill the gaps
-        var current = get(id);
-        var tz = ZoneId.of(req.timezone() != null ? req.timezone() : current.timezone());
+        events.update(id, req.venueId(), req.roomId(), req.title(), req.description(), req.backgroundUrl(),
+                req.startTimeLocal(), req.endTimeLocal(), req.timezone(), offsetMinutes, startUtc, endUtc);
 
-        var startLocal = req.startTimeLocal() != null ? req.startTimeLocal() : current.startTimeLocal();
-        var endLocal = req.endTimeLocal() != null ? req.endTimeLocal() : current.endTimeLocal();
-
-        var startZ = ZonedDateTime.of(startLocal, tz);
-        var endZ = ZonedDateTime.of(endLocal, tz);
-        int offsetMinutes = startZ.getOffset().getTotalSeconds() / 60;
-
-        events.update(
-                id,
-                venueId != null ? venueId : current.venueId(),
-                roomId,
-                req.title() != null ? req.title() : current.title(),
-                req.description() != null ? req.description() : current.description(),
-                req.backgroundUrl() != null ? req.backgroundUrl() : current.backgroundUrl(),
-                startLocal,
-                endLocal,
-                tz.getId(),
-                offsetMinutes,
-                startZ.toInstant(),
-                endZ.toInstant()
-        );
-
-        // Hosts patching (optional)
-        if (req.hostsReplace() != null) {
-            // simple approach: unlink all existing hosts then relink (or add granular ops as needed)
-            // (Add mapper methods if you want full replace. Skipping unlink-all here to keep concise.)
-            for (var h : req.hostsReplace()) {
-                events.upsertHost(id, h.partyId(), h.role(), h.sortOrder());
-            }
-        }
         return get(id);
     }
 
     @Transactional
-    public void delete(Long id) {
-        events.delete(id);
+    public void delete(long id) {
+        int n = events.delete(id);
+        if (n == 0) throw new IllegalArgumentException("Event not found");
+    }
+
+    public PageResponse<EventSummary> listByVenue(long venueId, int limit, int offset) {
+        venues.get(venueId);
+        return new PageResponse<>(events.listByVenue(venueId, limit, offset), limit, offset, events.countByVenue(venueId));
+    }
+
+    public PageResponse<EventSummary> listByHost(long hostId, int limit, int offset) {
+        return new PageResponse<>(events.listByHost(hostId, limit, offset), limit, offset, events.countByHost(hostId));
+    }
+
+    private EventSummary throwCreate() {
+        throw new IllegalStateException("Failed to create event");
     }
 }

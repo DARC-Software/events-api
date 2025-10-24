@@ -1,20 +1,20 @@
 package com.darcsoftware.eventsapi.event.dto;
 
+import java.time.OffsetDateTime;
 import java.time.Instant;
-import java.time.LocalDateTime;
 
 public record EventSummary(
-        Long id,
+        long id,
         String title,
         String description,
-        Long venueId,
+        long venueId,
         String venueName,
         Long roomId,
         String roomName,
         String timezone,
-        Integer offsetMinutes,
-        LocalDateTime startTimeLocal,
-        LocalDateTime endTimeLocal,
+        int offsetMinutes,
+        OffsetDateTime startTimeLocal,
+        OffsetDateTime endTimeLocal,
         Instant startTimeUtc,
         Instant endTimeUtc,
         String backgroundUrl

@@ -1,7 +1,7 @@
-package com.darcsoftware.eventsapi.party.dto;
+package com.darcsoftware.eventsapi.profiles.group.dto;
 
 public record GroupProfileResponse(
-        Long partyId,
+        long partyId,
         String groupName,
         String bio,
         String avatarUrl,
