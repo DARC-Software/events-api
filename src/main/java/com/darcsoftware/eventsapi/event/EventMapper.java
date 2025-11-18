@@ -13,11 +13,18 @@ public interface EventMapper {
 
     @Select("""
       SELECT e.id,
-             e.title, e.description, e.timezone, e.offset_minutes AS offsetMinutes,
-             e.start_time_local AS startTimeLocal, e.end_time_local AS endTimeLocal,
-             e.start_time_utc AS startTimeUtc, e.end_time_utc AS endTimeUtc,
-             e.venue_id AS venueId, v.name AS venueName,
-             e.room_id AS roomId, r.name AS roomName,
+             e.title, 
+             e.description, 
+             e.venue_id AS venueId, 
+             v.name AS venueName,
+             e.room_id AS roomId, 
+             r.name AS roomName,
+             e.timezone, 
+             e.offset_minutes AS offsetMinutes,
+             e.start_time_local AS startTimeLocal, 
+             e.end_time_local AS endTimeLocal,
+             e.start_time_utc AS startTimeUtc, 
+             e.end_time_utc AS endTimeUtc,
              e.background_url AS backgroundUrl
       FROM event e
       JOIN venue v ON v.id = e.venue_id
@@ -80,11 +87,18 @@ public interface EventMapper {
 
     @Select("""
       SELECT e.id,
-             e.title, e.description, e.timezone, e.offset_minutes AS offsetMinutes,
-             e.start_time_local AS startTimeLocal, e.end_time_local AS endTimeLocal,
-             e.start_time_utc AS startTimeUtc, e.end_time_utc AS endTimeUtc,
-             e.venue_id AS venueId, v.name AS venueName,
-             e.room_id AS roomId, r.name AS roomName,
+             e.title, 
+             e.description, 
+             e.venue_id AS venueId, 
+             v.name AS venueName,
+             e.room_id AS roomId, 
+             r.name AS roomName,
+             e.timezone, 
+             e.offset_minutes AS offsetMinutes,
+             e.start_time_local AS startTimeLocal, 
+             e.end_time_local AS endTimeLocal,
+             e.start_time_utc AS startTimeUtc, 
+             e.end_time_utc AS endTimeUtc,
              e.background_url AS backgroundUrl
       FROM event e
       JOIN venue v ON v.id = e.venue_id

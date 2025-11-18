@@ -24,7 +24,7 @@ public class VenueService {
     }
 
     public PageResponse<VenueResponse> list(int limit, int offset) {
-        return venues.list(limit, offset);
+        return venues.listPaged(limit, offset);
     }
 
     @Transactional
@@ -41,8 +41,8 @@ public class VenueService {
     public VenueResponse update(long id, VenueUpdateRequest req) {
         final VenueResponse existing = get(id);
         // On update, recalc slug if name or city changed, else keep the existing
-        final String newName = req.name() != null ? req.name() : existing.name();
-        final String newCity = req.city() != null ? req.city() : existing.city();
+        final String newName = req.name() != null ? req.name() : existing.getName();
+        final String newCity = req.city() != null ? req.city() : existing.getCity();
 
         final String slug = slugService.slugOfVenue(newName, newCity);
         ensureSlugUnique(slug, id);

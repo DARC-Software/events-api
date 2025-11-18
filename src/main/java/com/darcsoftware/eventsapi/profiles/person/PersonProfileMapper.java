@@ -41,20 +41,21 @@ public interface PersonProfileMapper {
     PersonProfileGetResponse selectPersonProfileGet(@Param("partyId") long partyId);
 
     @Insert("""
-        INSERT INTO person_profile
-          (party_id, first_name, last_name, stage_name, bio, avatar_url, instagram, tiktok, facebook)
-        VALUES
-          (#{partyId}, #{r.firstName}, #{r.lastName}, #{r.stageName}, #{r.bio},
-           #{r.avatarUrl}, #{r.instagram}, #{r.tiktok}, #{r.facebook})
-        ON CONFLICT (party_id) DO UPDATE SET
-          first_name = EXCLUDED.first_name,
-          last_name  = EXCLUDED.last_name,
-          stage_name = EXCLUDED.stage_name,
-          bio        = EXCLUDED.bio,
-          avatar_url = EXCLUDED.avatar_url,
-          instagram  = EXCLUDED.instagram,
-          tiktok     = EXCLUDED.tiktok,
-          facebook   = EXCLUDED.facebook
+      INSERT INTO person_profile
+        (party_id, first_name, last_name, stage_name, bio, avatar_url, instagram, tiktok, facebook)
+      VALUES
+        (#{partyId}, #{r.firstName}, #{r.lastName}, #{r.stageName}, #{r.bio},
+         #{r.avatarUrl}, #{r.instagram}, #{r.tiktok}, #{r.facebook})
+      AS new
+      ON DUPLICATE KEY UPDATE
+        first_name = new.first_name,
+        last_name  = new.last_name,
+        stage_name = new.stage_name,
+        bio        = new.bio,
+        avatar_url = new.avatar_url,
+        instagram  = new.instagram,
+        tiktok     = new.tiktok,
+        facebook   = new.facebook
     """)
     void upsertPersonProfile(@Param("partyId") long partyId,
                              @Param("r") PersonProfileUpsertRequest r);

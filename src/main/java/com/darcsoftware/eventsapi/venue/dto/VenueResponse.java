@@ -1,17 +1,22 @@
-// venue/dto/VenueResponse.java
 package com.darcsoftware.eventsapi.venue.dto;
 
-import java.time.Instant;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDateTime;
 
-public record VenueResponse(
-        long id,
-        String name,
-        String slug,
-        String addressLine1,
-        String addressLine2,
-        String city,
-        String state,
-        String zipCode,
-        Instant createdAt,
-        Instant updatedAt
-) {}
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class VenueResponse {
+    private Long id;
+    private String name;
+    private String slug;
+    private String addressLine1;
+    private String addressLine2;
+    private String city;
+    private String state;
+    private String zipCode;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+}

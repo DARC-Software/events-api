@@ -5,6 +5,7 @@ import com.darcsoftware.eventsapi.common.PageResponse;
 import com.darcsoftware.eventsapi.venue.dto.VenueResponse;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @Mapper
@@ -20,13 +21,26 @@ public interface VenueMapper {
     Optional<VenueResponse> get(long id);
 
     @Select("""
-      SELECT id, name, slug, address_line1 AS addressLine1, address_line2 AS addressLine2,
-             city, state, zip_code AS zipCode, created_at AS createdAt, updated_at AS updatedAt
-      FROM venue
-      ORDER BY name ASC, id ASC
-      LIMIT #{limit} OFFSET #{offset}
-      """)
-    PageResponse<VenueResponse> list(@Param("limit") int limit, @Param("offset") int offset);
+        SELECT id, name, slug,
+               address_line1 AS addressLine1,
+               address_line2 AS addressLine2,
+               city, state, zip_code AS zipCode,
+               created_at AS createdAt, updated_at AS updatedAt
+        FROM venue
+        ORDER BY name ASC, id ASC
+        LIMIT #{limit} OFFSET #{offset}
+    """)
+    List<VenueResponse> list(@Param("limit") int limit, @Param("offset") int offset);
+
+    @Select("SELECT COUNT(*) FROM venue")
+    long countAll();
+
+    /** Optional: expose a mapper-level wrapper so callers can just ask for a page. */
+    default PageResponse<VenueResponse> listPaged(int limit, int offset) {
+        List<VenueResponse> items = list(limit, offset);
+        long total = countAll();
+        return new PageResponse<>(items, limit, offset, total); // or `new PageResponse<>(...)` for your record
+    }
 
     @Select("""
       SELECT id, name, slug, address_line1 AS addressLine1, address_line2 AS addressLine2,
