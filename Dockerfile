@@ -5,7 +5,7 @@ COPY . .
 RUN gradle build -x test
 
 # Stage 2: Create the runtime image
-FROM openjdk:21-slim
+FROM eclipse-temurin:21
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
 EXPOSE 8080
